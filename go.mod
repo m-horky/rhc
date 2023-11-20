@@ -10,6 +10,7 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.4.0
+	github.com/snapcore/go-gettext v0.0.0-20230721153050-9082cdc2db05
 	github.com/urfave/cli/v2 v2.25.7
 	golang.org/x/sys v0.14.0
 	golang.org/x/term v0.14.0

@@ -157,3 +157,22 @@ tests:
 .PHONY: vet
 vet:
 	go vet -v ./...
+
+
+# Localization and translation
+GETTEXT_DOMAIN := rhc
+GETTEXT_PO_DIR := ./po
+GETTEXT_POT := $(GETTEXT_PO_DIR)/messages.pot
+GETTEXT_LANGUAGES := cs
+
+.PHONY: l10n
+l10n:
+	find . -type d \( -name "vendor" -o -name "_build" -o -name ".git" \) -prune -o -name "*.go" -type f -printf "%P\n" > .go.files
+	xgettext-go \
+		--files-from=.go.files \
+		-o $(GETTEXT_POT); \
+	for language in $(GETTEXT_LANGUAGES); do \
+		msgmerge --previous -o $(GETTEXT_PO_DIR)/$$language.po $(GETTEXT_PO_DIR)/$$language.po $(GETTEXT_POT); \
+		msgfmt --check -o $(GETTEXT_PO_DIR)/$$language.mo $(GETTEXT_PO_DIR)/$$language.po; \
+	done
+	rm .go.files
