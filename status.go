@@ -2,12 +2,54 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/briandowns/spinner"
 	systemd "github.com/coreos/go-systemd/v22/dbus"
+	"github.com/subpop/go-log"
 )
+
+var StatePath = "/var/lib/rhc/state.json"
+
+// FIXME The State struct does not cover partial connection (e.g. failed during the process)
+
+type State struct {
+	Connected bool `json:"connected"`
+}
+
+// GetState loads a program state from a cached file.
+func GetState() *State {
+	content, err := os.ReadFile(StatePath)
+	if err != nil {
+		log.Errorf("Could not read state cache: %v", err)
+		var state = &State{Connected: false}
+		if err = state.Save(); err != nil {
+			panic(err)
+		}
+		return state
+	}
+
+	// set up defaults
+	var state = State{Connected: false}
+
+	// read in actual state
+	if err = json.Unmarshal(content, &state); err != nil {
+		panic(err)
+	}
+	return &state
+}
+
+// Save writes the program state into a cache file.
+func (state *State) Save() error {
+	content, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(StatePath, content, 0644)
+}
 
 // rhsmStatus tries to print status provided by RHSM D-Bus API. If we provide
 // output in machine-readable format, then we only set files in SystemStatus
