@@ -4,7 +4,10 @@
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(go build:*)",
-      "Bash(meson setup:*)"
+      "Bash(meson setup:*)",
+      "Bash(cp:*)",
+      "Bash(go test:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
