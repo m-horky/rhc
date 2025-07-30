@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(go build:*)",
+      "Bash(meson setup:*)"
+    ],
+    "deny": []
+  }
+}

@@ -9,20 +9,20 @@ if get_option('vendor')
 endif
 
 goldflags = get_option('goldflags')
-goldflags += ' -X "main.Version=' + meson.project_version() + '"'
-goldflags += ' -X "main.ShortName=rhc"'
-goldflags += ' -X "main.LongName=rhc"'
-goldflags += ' -X "main.PrefixDir=' + get_option('prefix') + '"'
-goldflags += ' -X "main.BinDir=' + get_option('bindir') + '"'
-goldflags += ' -X "main.SbinDir=' + get_option('sbindir') + '"'
-goldflags += ' -X "main.LibexecDir=' + get_option('libexecdir') + '"'
-goldflags += ' -X "main.SysconfDir=' + get_option('sysconfdir') + '"'
-goldflags += ' -X "main.DataDir=' + get_option('datadir') + '"'
-goldflags += ' -X "main.DatarootDir=' + get_option('datadir') + '"'
-goldflags += ' -X "main.ManDir=' + get_option('mandir') + '"'
-goldflags += ' -X "main.DocDir=' + get_option('prefix') / 'doc' + '"'
-goldflags += ' -X "main.LocalstateDir=' + get_option('localstatedir') + '"'
-goldflags += ' -X "main.ServiceName=yggdrasil"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.Version=' + meson.project_version() + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.ShortName=rhc"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.LongName=rhc"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.PrefixDir=' + get_option('prefix') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.BinDir=' + get_option('bindir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.SbinDir=' + get_option('sbindir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.LibexecDir=' + get_option('libexecdir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.SysconfDir=' + get_option('sysconfdir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.DataDir=' + get_option('datadir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.DatarootDir=' + get_option('datadir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.ManDir=' + get_option('mandir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.DocDir=' + get_option('prefix') / 'doc' + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.LocalstateDir=' + get_option('localstatedir') + '"'
+goldflags += ' -X "github.com/redhatinsights/rhc/pkg/config.ServiceName=yggdrasil"'
 
 gobuildflags = get_option('gobuildflags')
 
@@ -36,7 +36,7 @@ rhc = custom_target(
     gobuildflags,
     '-o', '@OUTPUT@',
     '-ldflags', goldflags,
-    'github.com/redhatinsights/rhc',
+    'github.com/redhatinsights/rhc/cmd/rhc',
   ],
   install: true,
   install_dir: get_option('bindir'),
