@@ -81,18 +81,18 @@ func beforeAction(c *cli.Context) error {
 		logLevelSrc = fmt.Sprintf("config file: '%s'", c.String("config"))
 	}
 
-	conf.Config = conf.Conf{
+	conf.Configuration = conf.Config{
 		CertFile: c.String(cliCertFile),
 		KeyFile:  c.String(cliKeyFile),
 	}
 
 	logLevelStr := c.String(cliLogLevel)
-	if err := conf.Config.LogLevel.UnmarshalText([]byte(logLevelStr)); err != nil {
+	if err := conf.Configuration.LogLevel.UnmarshalText([]byte(logLevelStr)); err != nil {
 		slog.Error(fmt.Sprintf("invalid log level '%s' set via %s", logLevelStr, logLevelSrc))
-		conf.Config.LogLevel = slog.LevelInfo
+		conf.Configuration.LogLevel = slog.LevelInfo
 	}
 
-	slog.SetLogLoggerLevel(conf.Config.LogLevel)
+	slog.SetLogLoggerLevel(conf.Configuration.LogLevel)
 
 	// When environment variable NO_COLOR or --no-color CLI option is set, then do not display colors
 	// and animations too. The NO_COLOR environment variable have to have value "1" or "true",

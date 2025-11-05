@@ -15,7 +15,7 @@ import (
 
 // showTimeDuration shows table with duration of each sub-action
 func showTimeDuration(durations map[string]time.Duration) {
-	if conf.Config.LogLevel <= slog.LevelDebug {
+	if conf.Configuration.LogLevel <= slog.LevelDebug {
 		fmt.Println()
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 		_, _ = fmt.Fprintln(w, "STEP\tDURATION\t")
@@ -28,14 +28,14 @@ func showTimeDuration(durations map[string]time.Duration) {
 
 // showErrorMessages shows table with all error messages gathered during action
 func showErrorMessages(action string, errorMessages map[string]LogMessage) error {
-	if hasPriorityErrors(errorMessages, conf.Config.LogLevel) {
+	if hasPriorityErrors(errorMessages, conf.Configuration.LogLevel) {
 		if !ui.IsOutputMachineReadable() {
 			fmt.Println()
 			fmt.Printf("The following errors were encountered during %s:\n\n", action)
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 			_, _ = fmt.Fprintln(w, "TYPE\tSTEP\tERROR\t")
 			for step, logMsg := range errorMessages {
-				if logMsg.level >= conf.Config.LogLevel {
+				if logMsg.level >= conf.Configuration.LogLevel {
 					_, _ = fmt.Fprintf(w, "%v\t%v\t%v\n", logMsg.level, step, logMsg.message)
 				}
 			}

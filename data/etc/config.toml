@@ -1,0 +1,23 @@
+# rhc configuration file
+#
+# This file contains default configuration values for rhc (Red Hat connector).
+# You can override these values by editing this file or by creating drop-in
+# configuration files in /etc/rhc/config.toml.d/
+#
+# For more information, see the rhc-config(5) man page.
+
+# TLS certificate file path
+# cert-file = "/etc/rhc/cert.pem"
+cert-file = ""
+
+# TLS private key file path
+# key-file = "/etc/rhc/key.pem"
+key-file = ""
+
+# Logging level
+# Valid values: DEBUG, INFO, WARN, ERROR
+log-level = "INFO"
+
+# CA certificate directory
+# ca-dir = "/etc/pki/tls/certs"
+ca-dir = ""
