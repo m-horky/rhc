@@ -40,11 +40,13 @@ func mainAction(c *cli.Context) error {
 	return nil
 }
 
+// configureUI sets up the global UI state by calling ui.ConfigureOutput
+// with appropriate parameters.
 func configureUI(ctx *cli.Context) {
 	ui.ConfigureOutput(
-		// Rich output (animations) are only enabled when all are true:
+		// Rich output (animations) is only enabled when all are true:
 		// - we're printing in human-friendly format,
-		// - stdout is interactive console.
+		// - stdout is an interactive console.
 		!ctx.IsSet("format") && ui.IsInteractive(),
 		// Colors are only enabled when all are true:
 		// output is rich,
@@ -267,30 +269,65 @@ func main() {
 			Description: "The configure command allows you to manage feature preferences before or after system registration.",
 			Subcommands: []*cli.Command{
 				{
-					Name:        "features",
-					Usage:       "Manage feature levels",
-					UsageText:   fmt.Sprintf("%v configure features COMMAND", app.Name),
-					Description: "Enable or disable content management, analytics, or remote management.",
+					Name:  "features",
+					Usage: "Manage Red Hat connector features",
+					UsageText: fmt.Sprintf("%v configure features COMMAND", app.Name) + "\n\n" +
+						"COMMANDS:\n" +
+						"   status   Show feature status or preferences\n" +
+						"   enable   Enable one or more features\n" +
+						"   disable  Disable one or more features",
+					Description: "Manage features such as content, analytics, and remote-management. " +
+						"Before registration, this sets preferences. After registration, this modifies active features.",
 					Subcommands: []*cli.Command{
 						{
-							Name:   "status",
-							Usage:  "Show status",
+							Name:  "status",
+							Usage: "Show feature status or preferences",
+							UsageText: fmt.Sprintf("%v configure features status [command options]", app.Name) + "\n\n" +
+								"DESCRIPTION:\n" +
+								"   Shows the current state of all features.\n" +
+								"   Before registration: displays feature PREFERENCES\n" +
+								"   After registration: displays actual feature STATUS",
+							Flags: []cli.Flag{
+								&cli.StringFlag{
+									Name:    "format",
+									Usage:   "prints output in machine-readable format (supported formats: \"json\")",
+									Aliases: []string{"f"},
+								},
+							},
 							Before: beforeFeaturesStatusAction,
 							Action: featuresStatusAction,
 						},
 						{
-							Name:      "enable",
-							Usage:     "Enable a feature",
-							ArgsUsage: fmt.Sprintf("FEATURE (allowed values: %s)", featureIDs),
-							Before:    beforeFeaturesEnableAction,
-							Action:    featuresEnableAction,
+							Name:        "enable",
+							Usage:       "Enable one or more features",
+							UsageText:   fmt.Sprintf("%v configure features enable [command options] FEATURE [FEATURE...]", app.Name),
+							ArgsUsage:   fmt.Sprintf("FEATURE (allowed values: %s)", featureIDs),
+							Description: "Enable one or more features",
+							Flags: []cli.Flag{
+								&cli.StringFlag{
+									Name:    "format",
+									Usage:   "prints output in machine-readable format (supported formats: \"json\")",
+									Aliases: []string{"f"},
+								},
+							},
+							Before: beforeFeaturesEnableAction,
+							Action: featuresEnableAction,
 						},
 						{
-							Name:      "disable",
-							Usage:     "Disable a feature",
-							ArgsUsage: fmt.Sprintf("FEATURE (allowed values: %s)", featureIDs),
-							Before:    beforeFeaturesDisableAction,
-							Action:    featuresDisableAction,
+							Name:        "disable",
+							Usage:       "Disable one or more features",
+							UsageText:   fmt.Sprintf("%v configure features disable [command options] FEATURE [FEATURE...]", app.Name),
+							ArgsUsage:   fmt.Sprintf("FEATURE (allowed values: %s)", featureIDs),
+							Description: "Disable one or more features",
+							Flags: []cli.Flag{
+								&cli.StringFlag{
+									Name:    "format",
+									Usage:   "prints output in machine-readable format (supported formats: \"json\")",
+									Aliases: []string{"f"},
+								},
+							},
+							Before: beforeFeaturesDisableAction,
+							Action: featuresDisableAction,
 						},
 					},
 				},

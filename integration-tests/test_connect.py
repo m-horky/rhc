@@ -90,13 +90,25 @@ def generate_feature_combinations():
             disabled_features = [f for f in ALL_FEATURES_CLI if f not in enabled_features]
 
             # Determine if this combination should fail
-            # It fails if any feature with dependencies is enabled but not all its dependencies are enabled
+            # It fails if:
+            # 1. Any feature with dependencies is enabled but not all its dependencies are enabled
+            # 2. Any feature is disabled while features that depend on it are enabled
             should_fail = False
+
+            # Check 1: Enabling a feature while disabling its dependencies
             for feature in enabled_features:
                 required = get_required_features(feature)
                 if required and not all(req in enabled_features for req in required):
                     should_fail = True
                     break
+
+            # Check 2: Disabling a feature while enabling features that depend on it
+            if not should_fail:
+                for feature in disabled_features:
+                    dependent = get_dependent_features(feature)
+                    if dependent and any(dep in enabled_features for dep in dependent):
+                        should_fail = True
+                        break
 
             if should_fail:
                 expected_states = None

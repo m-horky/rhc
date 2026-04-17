@@ -7,8 +7,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/redhatinsights/rhc/internal/rhsm"
 	"github.com/urfave/cli/v2"
+
+	"github.com/redhatinsights/rhc/internal/rhsm"
 
 	"github.com/redhatinsights/rhc/internal/datacollection"
 	"github.com/redhatinsights/rhc/internal/remotemanagement"
@@ -65,20 +66,25 @@ func (disconnectResult *DisconnectResult) errorMessages() map[string]string {
 
 // TryDeactivateServices tries to stop yggdrasil.service, when it hasn't
 // been already stopped.
-func (disconnectResult *DisconnectResult) TryDeactivateServices() error {
+func (disconnectResult *DisconnectResult) TryDeactivateServices() {
 	slog.Info("Deactivating the yggdrasil service")
 
 	// First check if the service hasn't been already stopped
 	isInactive, err := remotemanagement.AssertYggdrasilServiceState("inactive")
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf("Cannot check yggdrasil service state: %v", err)
+		disconnectResult.YggdrasilStopped = false
+		disconnectResult.YggdrasilStoppedError = errMsg
+		slog.Error(errMsg)
+		ui.Printf(" [%v] %v\n", ui.Icons.Error, errMsg)
+		return
 	}
 	if isInactive {
 		infoMsg := "The yggdrasil service is already inactive"
 		disconnectResult.YggdrasilStopped = true
 		slog.Info(infoMsg)
 		ui.Printf(" [%v] %v\n", ui.Icons.Info, infoMsg)
-		return nil
+		return
 	}
 	// When the service is not inactive, then try to get this service to this state
 	progressMessage := "Deactivating the yggdrasil service"
@@ -95,27 +101,31 @@ func (disconnectResult *DisconnectResult) TryDeactivateServices() error {
 		slog.Info(infoMsg)
 		ui.Printf(" [%v] %v\n", ui.Icons.Ok, infoMsg)
 	}
-	return nil
 }
 
 // TryUnregisterInsightsClient tries to unregister insights-client if the client hasn't been
 // already unregistered
-func (disconnectResult *DisconnectResult) TryUnregisterInsightsClient() error {
+func (disconnectResult *DisconnectResult) TryUnregisterInsightsClient() {
 	slog.Info("Disconnecting from Red Hat Lightspeed")
 
 	isRegistered, err := datacollection.InsightsClientIsRegistered()
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf("Cannot check Red Hat Lightspeed registration status: %v", err)
+		disconnectResult.InsightsDisconnected = false
+		disconnectResult.InsightsDisconnectedError = errMsg
+		slog.Error(errMsg)
+		ui.Printf(" [%v] %v\n", ui.Icons.Error, errMsg)
+		return
 	}
 	if !isRegistered {
 		disconnectResult.InsightsDisconnected = true
 		slog.Info("Already disconnected from Red Hat Lightspeed")
-		ui.Printf(" [%v] %v\n", ui.Icons.Info, "Already disconnected from Red Hat Lightspeed (formerly Insights)")
-		return nil
+		ui.Printf(" [%v] %v\n", ui.Icons.Info, "Already disconnected from Red Hat Lightspeed")
+		return
 	}
 	err = ui.Spinner(datacollection.UnregisterInsightsClient, ui.Indent.Small, "Disconnecting from Red Hat Lightspeed (formerly Insights)...")
 	if err != nil {
-		errMsg := fmt.Sprintf("Cannot disconnect from Red Hat Lightspeed (formerly Insights): %v", err)
+		errMsg := fmt.Sprintf("Cannot disconnect from Red Hat Lightspeed: %v", err)
 		disconnectResult.InsightsDisconnected = false
 		disconnectResult.InsightsDisconnectedError = errMsg
 		slog.Error(fmt.Sprintf("Cannot disconnect from Red Hat Lightspeed: %v", err))
@@ -123,26 +133,30 @@ func (disconnectResult *DisconnectResult) TryUnregisterInsightsClient() error {
 	} else {
 		disconnectResult.InsightsDisconnected = true
 		slog.Debug("Disconnected from Red Hat Lightspeed")
-		ui.Printf(" [%v] %v\n", ui.Icons.Ok, "Disconnected from Red Hat Lightspeed (formerly Insights)")
+		ui.Printf(" [%v] %v\n", ui.Icons.Ok, "Disconnected from Red Hat Lightspeed")
 	}
-	return nil
 }
 
 // TryUnregisterRHSM tries to unregister system from RHSM if the client hasn't been already
 // unregistered from RHSM
-func (disconnectResult *DisconnectResult) TryUnregisterRHSM() error {
+func (disconnectResult *DisconnectResult) TryUnregisterRHSM() {
 	slog.Info("Unregistering system from Red Hat Subscription Management")
 
 	isRegistered, err := rhsm.IsRHSMRegistered()
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf("Cannot check Red Hat Subscription Management registration status: %v", err)
+		disconnectResult.RHSMDisconnected = false
+		disconnectResult.RHSMDisconnectedError = errMsg
+		slog.Error(errMsg)
+		ui.Printf(" [%v] %v\n", ui.Icons.Error, errMsg)
+		return
 	}
 	if !isRegistered {
 		infoMsg := "Already disconnected from Red Hat Subscription Management"
 		disconnectResult.RHSMDisconnected = true
 		slog.Info(infoMsg)
 		ui.Printf(" [%v] %v\n", ui.Icons.Info, infoMsg)
-		return nil
+		return
 	}
 	err = ui.Spinner(
 		rhsm.Unregister,
@@ -155,14 +169,13 @@ func (disconnectResult *DisconnectResult) TryUnregisterRHSM() error {
 		disconnectResult.RHSMDisconnectedError = errMsg
 		slog.Error(errMsg)
 		ui.Printf(" [%v] %v\n", ui.Icons.Error, errMsg)
-		return nil
+		return
 	}
 
 	disconnectResult.RHSMDisconnected = true
 	infoMsg := "Disconnected from Red Hat Subscription Management"
 	slog.Debug(infoMsg)
 	ui.Printf(" [%v] %v\n", ui.Icons.Ok, infoMsg)
-	return nil
 }
 
 // beforeDisconnectAction ensures the user has supplied a correct `--format` flag
@@ -218,19 +231,23 @@ func disconnectAction(ctx *cli.Context) error {
 	var start time.Time
 	durations := make(map[string]time.Duration)
 
+	// TODO: Refactor to use IFeature interface instead of direct function calls
+	// This would make disconnect consistent with 'rhc configure features' and handle
+	// dependency ordering automatically. See configure_features_cmd.go for reference.
+
 	/* 1. Deactivate yggdrasil (rhcd) service */
 	start = time.Now()
-	_ = disconnectResult.TryDeactivateServices()
+	disconnectResult.TryDeactivateServices()
 	durations["yggdrasil"] = time.Since(start)
 
 	/* 2. Disconnect from Red Hat Lightspeed */
 	start = time.Now()
-	_ = disconnectResult.TryUnregisterInsightsClient()
+	disconnectResult.TryUnregisterInsightsClient()
 	durations["insights"] = time.Since(start)
 
 	/* 3. Unregister system from Red Hat Subscription Management */
 	start = time.Now()
-	_ = disconnectResult.TryUnregisterRHSM()
+	disconnectResult.TryUnregisterRHSM()
 	durations["rhsm"] = time.Since(start)
 
 	if !ui.IsOutputMachineReadable() {
